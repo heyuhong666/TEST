@@ -3,7 +3,7 @@
 ```mermaid
 flowchart TD
     %% WAN-IN インターフェイス
-    WANIN[WAN-IN<br/>受信トラフィック<br/>バインド: eth0, eth1]
+    WANIN[WAN-IN - 受信トラフィック - バインド: eth0, eth1]
 
     %% ルール10: VPNクライアントのみ
     rule10[ルール10<br/>ソース: VPNクライアント<br/>状態: new, established, related<br/>アクション: 許可]
