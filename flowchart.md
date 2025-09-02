@@ -3,28 +3,29 @@
 ```mermaid
 flowchart TD
     %% WAN-IN インターフェイス
-    WANIN[WAN-IN\n受信トラフィック\nバインド: eth0, eth1]
+    WANIN["WAN-IN\n受信トラフィック\nバインド: eth0, eth1, pppoe0"]
 
-    %% ルール10: VPNクライアントのみ
-    rule10[ルール10\nソース: VPNクライアント\n状態: new, established, related\nアクション: 許可]
-    WANIN -->|VPN接続元のみ許可| rule10
+    %% WAN-IN ルール10: VPNクライアントのみ
+    WAN_rule10["ルール10\nソース: VPN-clients\n状態: new, established, related\nアクション: 許可"]
+    WANIN -->|VPN接続元のみ許可| WAN_rule10
 
-    %% ルール20: LAN-Clientsからの戻りトラフィック
-    rule20[ルール20\nソース: LAN-Clients\n状態: established, related\nアクション: 許可]
-    WANIN -->|LAN内部からの応答のみ| rule20
+    %% WAN-IN ルール20: LAN-Clientsからの戻りトラフィック
+    WAN_rule20["ルール20\nソース: LAN-Clients\n状態: established, related\nアクション: 許可"]
+    WANIN -->|LAN内部からの応答のみ許可| WAN_rule20
 
-    %% デフォルトドロップ
-    defaultDrop[デフォルト: drop]
-    WANIN -->|その他のトラフィック| defaultDrop
+    %% WAN-IN デフォルトドロップ
+    WAN_default["デフォルト: drop"]
+    WANIN -->|その他のトラフィック| WAN_default
 
     %% LAN-OUT インターフェイス
-    LANOUT[LAN-OUT\n送信トラフィック\nバインド: br0 (VLAN101-105)]
+    LANOUT["LAN-OUT\n送信トラフィック\nバインド: br0 VLAN101-105"]
 
-    %% ルール10: LAN-Clients HTTP通信
-    lanRule10[ルール10\nソース: LAN-Clients\n宛先ポート: 80\nプロトコル: TCP\n状態: new, established, related\nアクション: 許可]
-    LANOUT --> lanRule10
+    %% LAN-OUT ルール10: HTTP/TCP 送信許可
+    LAN_rule10["ルール10\nソース: LAN-Clients\n宛先ポート: 80\nプロトコル: TCP\n状態: new, established, related\nアクション: 許可"]
+    LANOUT --> LAN_rule10
 
-    %% デフォルトドロップ
-    lanDefaultDrop[デフォルト: drop]
-    LANOUT -->|その他のトラフィック| lanDefaultDrop
+    %% LAN-OUT デフォルトドロップ
+    LAN_default["デフォルト: drop"]
+    LANOUT -->|その他のトラフィック| LAN_default
+
 
