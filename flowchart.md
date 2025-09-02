@@ -4,7 +4,7 @@
 %%{init: {"themeVariables": {"nodeTextAlignment": "center"}}}%%
 flowchart TD
     %% WAN-IN インターフェイス
-    WANIN["WAN-IN<br/>受信トラフィック<br/>バインド: eth0, eth1, pppoe0"]
+    WANIN["WAN-IN<br/>受信トラフィック<br/>バインド: eth0, eth1"]
 
     %% ルール10: VPNクライアントのみ
     WAN_rule10["ルール10<br/>ソース: VPN-clients<br/>状態: new/established/related<br/>アクション: 許可"]
