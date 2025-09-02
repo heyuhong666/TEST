@@ -1,23 +1,34 @@
 flowchart TD
-    %% LAN-OUT: 内部 → 外部
-    subgraph LAN-OUT ["LAN-OUT (内部 → 外部)"]
-        LANClients["LAN-Clients<br>192.168.101-105/24"] -->|HTTP TCP 80| Rule10LAN["ルール10: 新規 / 確立 / 関連状態を許可"]
-        LANClients -->|その他ポート| DropLAN["デフォルト動作: ドロップ"]
+    subgraph LAN-Clients [LANクライアントネットワーク]
+        A1(192.168.101.0/24)
+        A2(192.168.102.0/24)
+        A3(192.168.103.0/24)
+        A4(192.168.104.0/24)
+        A5(192.168.105.0/24)
     end
 
-    %% WAN-IN: 外部 → 内部
-    subgraph WAN-IN ["WAN-IN (外部 → 内部)"]
-        VPNClients["VPN-Clients<br>172.0.0.0/8"] -->|VPN UDP 1194| Rule10WAN["ルール10: 新規 / 確立 / 関連状態を許可"]
-        LANClients -->|返送パケット TCP/UDP 80,443,DNS| Rule20WAN["ルール20: 確立 / 関連状態を許可"]
-        Others["その他のIP"] -->|許可しない| DropWAN["デフォルト動作: ドロップ"]
+    subgraph VPN-Clients [VPNクライアントネットワーク]
+        V1(172.0.0.0/8)
     end
 
-    %% 
-    LANClients -.-> WAN-IN
-    VPNClients -.-> LAN-OUT
+    subgraph LAN-OUT [LAN→外部アウトバウンド防火墙]
+        L1["Rule10: TCP 80<br>Source: LAN-Clients<br>State: new/established/related"]
+        L2["Default: drop"]
+    end
 
-    %% 
-    style LAN-OUT fill:#e0f7fa,stroke:#00796b,stroke-width:2px
-    style WAN-IN fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    style DropLAN fill:#ffcdd2,stroke:#b71c1c,stroke-width:2px
-    style DropWAN fill:#ffcdd2,stroke:#b71c1c,stroke-width:2px
+    subgraph WAN-IN [外部→WANインバウンド防火墙]
+        W1["Rule10: VPN-Clients 允许<br>State: new/established/related"]
+        W2["Rule20: LAN-Clients 返回包允许<br>State: established/related"]
+        W3["Default: drop"]
+    end
+
+    %% データフロー
+    A1 -->|HTTP/HTTPS/DNS| L1 --> Internet[インターネット]
+    A2 -->|HTTP/HTTPS/DNS| L1 --> Internet
+    A3 -->|HTTP/HTTPS/DNS| L1 --> Internet
+    A4 -->|HTTP/HTTPS/DNS| L1 --> Internet
+    A5 -->|HTTP/HTTPS/DNS| L1 --> Internet
+
+    V1 --> W1 --> LAN[内部ネットワーク]
+
+    LAN --> W2 --> V1
