@@ -18,7 +18,7 @@ flowchart TD
     WANIN -->|その他のトラフィック| defaultDrop
 
     %% LAN-OUT インターフェイス
-    LANOUT[LAN-OUT<br/>発信トラフィック<br/>バインド: br0 (VLAN101-105)]
+    WANIN[WAN-IN - 受信トラフィック - バインド: br0 (VLAN101-105)]
 
     %% ルール10: LAN-Clients HTTP通信
     lanRule10[ルール10<br/>ソース: LAN-Clients<br/>宛先ポート: 80<br/>プロトコル: TCP<br/>状態: new, established, related<br/>アクション: 許可]
