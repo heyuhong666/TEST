@@ -2,8 +2,8 @@
 
 ```mermaid
 flowchart TD
-    %% WAN-IN インターフェイス受信トラフィック
-    WANIN[WAN-IN<br/>受信トラフィック] 
+    %% WAN-IN インターフェイス
+    WANIN[WAN-IN<br/>受信トラフィック<br/>バインド: eth0, eth1]
 
     %% ルール10: VPNクライアントのみ
     rule10[ルール10<br/>ソース: VPNクライアント<br/>状態: new, established, related<br/>アクション: 許可]
@@ -17,9 +17,9 @@ flowchart TD
     defaultDrop[デフォルト: drop]
     WANIN -->|その他のトラフィック| defaultDrop
 
-    %% LAN-OUT インターフェイス発信トラフィック
-    LANOUT[LAN-OUT<br/>発信トラフィック]
-    
+    %% LAN-OUT インターフェイス
+    LANOUT[LAN-OUT<br/>発信トラフィック<br/>バインド: br0 (VLAN101-105)]
+
     %% ルール10: LAN-Clients HTTP通信
     lanRule10[ルール10<br/>ソース: LAN-Clients<br/>宛先ポート: 80<br/>プロトコル: TCP<br/>状態: new, established, related<br/>アクション: 許可]
     LANOUT --> lanRule10
