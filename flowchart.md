@@ -1,34 +1,29 @@
+# VyOS ファイアウォールルール
+
+```mermaid
 flowchart TD
-    subgraph LAN-Clients [LANクライアントネットワーク]
-        A1(192.168.101.0/24)
-        A2(192.168.102.0/24)
-        A3(192.168.103.0/24)
-        A4(192.168.104.0/24)
-        A5(192.168.105.0/24)
-    end
+    %% WAN-IN インターフェイス受信トラフィック
+    WANIN[WAN-IN<br/>受信トラフィック] 
 
-    subgraph VPN-Clients [VPNクライアントネットワーク]
-        V1(172.0.0.0/8)
-    end
+    %% ルール10: VPNクライアントのみ
+    rule10[ルール10<br/>ソース: VPNクライアント<br/>状態: new, established, related<br/>アクション: 許可]
+    WANIN -->|VPN接続元のみ許可| rule10
 
-    subgraph LAN-OUT [LAN→外部アウトバウンド防火墙]
-        L1["Rule10: TCP 80<br>Source: LAN-Clients<br>State: new/established/related"]
-        L2["Default: drop"]
-    end
+    %% ルール20: LAN-Clientsからの戻りトラフィック
+    rule20[ルール20<br/>ソース: LAN-Clients<br/>状態: established, related<br/>アクション: 許可]
+    WANIN -->|LAN内部からの応答のみ| rule20
 
-    subgraph WAN-IN [外部→WANインバウンド防火墙]
-        W1["Rule10: VPN-Clients 允许<br>State: new/established/related"]
-        W2["Rule20: LAN-Clients 返回包允许<br>State: established/related"]
-        W3["Default: drop"]
-    end
+    %% デフォルトドロップ
+    defaultDrop[デフォルト: drop]
+    WANIN -->|その他のトラフィック| defaultDrop
 
-    %% データフロー
-    A1 -->|HTTP/HTTPS/DNS| L1 --> Internet[インターネット]
-    A2 -->|HTTP/HTTPS/DNS| L1 --> Internet
-    A3 -->|HTTP/HTTPS/DNS| L1 --> Internet
-    A4 -->|HTTP/HTTPS/DNS| L1 --> Internet
-    A5 -->|HTTP/HTTPS/DNS| L1 --> Internet
+    %% LAN-OUT インターフェイス発信トラフィック
+    LANOUT[LAN-OUT<br/>発信トラフィック]
+    
+    %% ルール10: LAN-Clients HTTP通信
+    lanRule10[ルール10<br/>ソース: LAN-Clients<br/>宛先ポート: 80<br/>プロトコル: TCP<br/>状態: new, established, related<br/>アクション: 許可]
+    LANOUT --> lanRule10
 
-    V1 --> W1 --> LAN[内部ネットワーク]
-
-    LAN --> W2 --> V1
+    %% デフォルトドロップ
+    lanDefaultDrop[デフォルト: drop]
+    LANOUT -->|その他のトラフィック| lanDefaultDrop
