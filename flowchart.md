@@ -1,22 +1,23 @@
-```mermaid
 flowchart TD
-    %% coreSW
-    CSW1["CSW1 (AX2340S-24P4X)"]
+    %% LAN-OUT: 内部 → 外部
+    subgraph LAN-OUT ["LAN-OUT (内部 → 外部)"]
+        LANClients["LAN-Clients<br>192.168.101-105/24"] -->|HTTP TCP 80| Rule10LAN["ルール10: 新規 / 確立 / 関連状態を許可"]
+        LANClients -->|その他ポート| DropLAN["デフォルト動作: ドロップ"]
+    end
 
-    %% HUB / SW
-    KIKI["機器HUB (ELECOM)"]
-    PCHUB["PC-HUB (ELECOM)"]
-    CAMHUB["防犯カメラHUB (ELECOM)"]
-    REJIHUB1["レジHUB1 (ELECOM)"]
-    REJIHUB2["レジHUB2 (ELECOM)"]
-    SCHUB["SCHUB (ELECOM)"]
-    RSW1A1["RSW1A1 (AX2340S-24P4X)"]
+    %% WAN-IN: 外部 → 内部
+    subgraph WAN-IN ["WAN-IN (外部 → 内部)"]
+        VPNClients["VPN-Clients<br>172.0.0.0/8"] -->|VPN UDP 1194| Rule10WAN["ルール10: 新規 / 確立 / 関連状態を許可"]
+        LANClients -->|返送パケット TCP/UDP 80,443,DNS| Rule20WAN["ルール20: 確立 / 関連状態を許可"]
+        Others["その他のIP"] -->|許可しない| DropWAN["デフォルト動作: ドロップ"]
+    end
 
-    %% CSW1 
-    CSW1 --- 機器HUB
-    CSW1 --- PCHUB
-    CSW1 --- CAMHUB
-    CSW1 --- REJIHUB1
-    CSW1 --- REJIHUB2
-    CSW1 --- SCHUB
-    CSW1 --- RSW1A1
+    %% 
+    LANClients -.-> WAN-IN
+    VPNClients -.-> LAN-OUT
+
+    %% 
+    style LAN-OUT fill:#e0f7fa,stroke:#00796b,stroke-width:2px
+    style WAN-IN fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style DropLAN fill:#ffcdd2,stroke:#b71c1c,stroke-width:2px
+    style DropWAN fill:#ffcdd2,stroke:#b71c1c,stroke-width:2px
