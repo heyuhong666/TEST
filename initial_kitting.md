@@ -33,8 +33,8 @@ flowchart TD
         B -- Yes --> S;
     end
 
-    subgraph 人工操作
-        H1[工程师/运维] -- 1. 创建或更新配置 --> A;
+    subgraph NETBOX
+        H1[初期KITTING] -- 1. 初期投入申請 --> A;
         K1[在NetBox UI上] -- 2. 确认设备并点击 --> W;
         Y1[收到失败通知] -- 3. 根据失败信息 --> A;
     end
