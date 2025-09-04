@@ -10,16 +10,6 @@ flowchart TD
         N --> L;
     end
     
-    subgraph 自动化后端
-        
-        U --> V[后端: 向NetBox API发送授权请求];
-        V --> I;
-        W[后端服务: 接收投入请求] --> X[后端: 验证API令牌];
-        X --> Y{令牌有效?};
-        Y -- Yes --> Z[Ansible执行任务];
-        Y -- No --> AA[后端: 记录失败并通知];
-    end
-
     subgraph GitHub & CI/CD
         A[create_PR/gmail] --> B{PR};
         B -- No --> C[GitHub: 关闭PR];
@@ -30,18 +20,18 @@ flowchart TD
         G --> H[工程师: 重新提交PR];
         H --> A;
         B -- Yes --> S;
-        S[webhook:PR_commit] -- API token --> U;
-    end
-
-    subgraph NETBOX
-        H1[初期KITTING] -- 1. 初期投入申請 --> A;
-        U[処理待ちタスクリスト:初期投入タスク+1 ];
-        K1[在NetBox UI上] -- 2. 确认设备并点击 --> W;
-        Y1[收到失败通知] -- 3. 根据失败信息 --> A;
+        S --> U;
     end
     
-    subgraph 设备投入
-        Z --> Z1[Ansible连接设备];
+    subgraph NETBOX
+        H1[初期KITTING] --> A;
+        U[処理待ちタスクリスト:初期投入タスク+1 ];
+        K1[在NetBox UI上] --> W;
+        Y1[收到失败通知] --> A;
+    end
+    
+    subgraph Ansible
+        Z --> Z1[192.0.2.1接続];
         Z1 --> Z2[执行配置并提交];
         Z2 --> Z3[后端: 将结果反馈给NetBox];
         Z3 --> Z4[NetBox: 删除待处理任务];
