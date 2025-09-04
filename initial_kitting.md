@@ -11,8 +11,7 @@ flowchart TD
     end
     
     subgraph 自动化后端
-        S[后端服务: 接收Webhook] --> T[后端: 从GitHub获取PR信息];
-        T --> U[后端: 生成有时效性的API令牌];
+        
         U --> V[后端: 向NetBox API发送授权请求];
         V --> I;
         W[后端服务: 接收投入请求] --> X[后端: 验证API令牌];
@@ -22,7 +21,7 @@ flowchart TD
     end
 
     subgraph GitHub & CI/CD
-        A[工程师: 创建PR] --> B{PR审核};
+        A[create_PR/gmail] --> B{PR};
         B -- No --> C[GitHub: 关闭PR];
         C --> D[Webhook触发后端];
         D --> E[后端: 获取修改建议];
@@ -31,10 +30,12 @@ flowchart TD
         G --> H[工程师: 重新提交PR];
         H --> A;
         B -- Yes --> S;
+        S[webhook:PR_commit] -- API token --> U;
     end
 
     subgraph NETBOX
         H1[初期KITTING] -- 1. 初期投入申請 --> A;
+        U[処理待ちタスクリスト:初期投入タスク+1 ];
         K1[在NetBox UI上] -- 2. 确认设备并点击 --> W;
         Y1[收到失败通知] -- 3. 根据失败信息 --> A;
     end
