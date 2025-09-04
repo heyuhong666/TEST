@@ -1,52 +1,78 @@
 ```mermaid
 %%{init: {"themeVariables": {"nodeTextAlignment": "center"}}}%%
 flowchart TD
-    subgraph 工程师操作
-        A[创建包含初始配置的Git PR] --> B{PR审核};
+    subgraph NetBox插件与API
+        I[插件: 接收PR合并通知] --> J(插件: 检查授权记录);
+        J --> K{有授权记录?};
+        K -- Yes --> L[插件: 更新任务状态];
+        L --> M[NetBox UI: 显示'投入'按钮];
+        K -- No --> N[插件: 创建新的待处理任务];
+        N --> L;
+    end
+    
+    subgraph 自动化后端
+        S[后端服务: 接收Webhook] --> T[后端: 从GitHub获取PR信息];
+        T --> U[后端: 生成有时效性的API令牌];
+        U --> V[后端: 向NetBox API发送授权请求];
+        V --> I;
+        W[后端服务: 接收投入请求] --> X[后端: 验证API令牌];
+        X --> Y{令牌有效?};
+        Y -- Yes --> Z[Ansible执行任务];
+        Y -- No --> AA[后端: 记录失败并通知];
     end
 
     subgraph GitHub & CI/CD
-        B -- 审核通过并合并 --> C[GitHub Webhook];
-        C --> D[CI/CD任务运行];
-        D --> E{任务成功?};
-        E -- No --> F[发送失败通知];
-        E -- Yes --> G[生成有时效性的API令牌];
-        G --> H[向NetBox API发送请求];
-    end
-    
-    subgraph NetBox
-        H --> I[NetBox存储授权信息];
-        I --> J[NetBox UI显示“投入”按钮];
+        A[工程师: 创建PR] --> B{PR审核};
+        B -- No --> C[GitHub: 关闭PR];
+        C --> D[Webhook触发后端];
+        D --> E[后端: 获取修改建议];
+        E --> F[后端: 向NetBox API发送请求];
+        F --> G[NetBox UI: 显示'修改任务'];
+        G --> H[工程师: 重新提交PR];
+        H --> A;
+        B -- Yes --> S;
     end
 
     subgraph 人工操作
-        J --> K[人工确认设备并点击“投入”按钮];
+        H1[工程师/运维] -- 1. 创建或更新配置 --> A;
+        K1[在NetBox UI上] -- 2. 确认设备并点击 --> W;
+        Y1[收到失败通知] -- 3. 根据失败信息 --> A;
     end
-
-    subgraph 自动化执行
-        K --> L[NetBox向Ansible发送任务];
-        L --> M[Ansible使用API令牌];
-        M --> N[使用硬编码IP 192.0.2.1连接];
-        N --> O[执行初始化配置并提交commit/save];
+    
+    subgraph 设备投入
+        Z --> Z1[Ansible连接设备];
+        Z1 --> Z2[执行配置并提交];
+        Z2 --> Z3[后端: 将结果反馈给NetBox];
+        Z3 --> Z4[NetBox: 删除待处理任务];
     end
-
-    subgraph 结果反馈
-        O --> P[将结果反馈给NetBox];
-        P --> Q[NetBox更新设备状态];
-    end
-
+    
     style A fill:#BCEE68,stroke:#000000,stroke-width:2px;
     style B fill:#87CEEB,stroke:#000000,stroke-width:2px;
-    style C fill:#FFA07A,stroke:#000000,stroke-width:2px;
-    style D fill:#FFFACD,stroke:#000000,stroke-width:2px;
-    style G fill:#FFD700,stroke:#000000,stroke-width:2px;
-    style H fill:#E0FFFF,stroke:#000000,stroke-width:2px;
+    style C fill:#FF9999,stroke:#000000,stroke-width:2px;
+    style D fill:#FFA07A,stroke:#000000,stroke-width:2px;
+    style E fill:#FFFACD,stroke:#000000,stroke-width:2px;
+    style F fill:#E0FFFF,stroke:#000000,stroke-width:2px;
+    style G fill:#FFB6C1,stroke:#000000,stroke-width:2px;
+    style H fill:#BCEE68,stroke:#000000,stroke-width:2px;
     style I fill:#87CEEB,stroke:#000000,stroke-width:2px;
-    style J fill:#FFB6C1,stroke:#000000,stroke-width:2px;
-    style K fill:#BCEE68,stroke:#000000,stroke-width:2px;
-    style L fill:#98FB98,stroke:#000000,stroke-width:2px;
-    style M fill:#E0FFFF,stroke:#000000,stroke-width:2px;
-    style N fill:#FFFACD,stroke:#000000,stroke-width:2px;
-    style O fill:#FF7F50,stroke:#000000,stroke-width:2px;
-    style P fill:#E0FFFF,stroke:#000000,stroke-width:2px;
-    style Q fill:#87CEEB,stroke:#000000,stroke-width:2px;
+    style J fill:#FFA07A,stroke:#000000,stroke-width:2px;
+    style K fill:#87CEEB,stroke:#000000,stroke-width:2px;
+    style L fill:#FFB6C1,stroke:#000000,stroke-width:2px;
+    style M fill:#98FB98,stroke:#000000,stroke-width:2px;
+    style N fill:#FFD700,stroke:#000000,stroke-width:2px;
+    style S fill:#FFA07A,stroke:#000000,stroke-width:2px;
+    style T fill:#FFFACD,stroke:#000000,stroke-width:2px;
+    style U fill:#FFD700,stroke:#000000,stroke-width:2px;
+    style V fill:#E0FFFF,stroke:#000000,stroke-width:2px;
+    style W fill:#98FB98,stroke:#000000,stroke-width:2px;
+    style X fill:#FFA07A,stroke:#000000,stroke-width:2px;
+    style Y fill:#87CEEB,stroke:#000000,stroke-width:2px;
+    style Z fill:#FF7F50,stroke:#000000,stroke-width:2px;
+    style Z1 fill:#FF7F50,stroke:#000000,stroke-width:2px;
+    style Z2 fill:#FF7F50,stroke:#000000,stroke-width:2px;
+    style Z3 fill:#E0FFFF,stroke:#000000,stroke-width:2px;
+    style Z4 fill:#FFB6C1,stroke:#000000,stroke-width:2px;
+    style AA fill:#FFD700,stroke:#000000,stroke-width:2px;
+    style H1 fill:#BCEE68,stroke:#000000,stroke-width:2px;
+    style K1 fill:#BCEE68,stroke:#000000,stroke-width:2px;
+    style Y1 fill:#BCEE68,stroke:#000000,stroke-width:2px;
